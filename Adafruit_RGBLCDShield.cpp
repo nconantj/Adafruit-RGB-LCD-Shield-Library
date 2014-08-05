@@ -340,10 +340,74 @@ void  Adafruit_RGBLCDShield::_digitalWrite(uint8_t p, uint8_t d) {
 // Allows to set the backlight, if the LCD backpack is used
 void Adafruit_RGBLCDShield::setBacklight(uint8_t status) {
   // check if i2c or SPI
+  enableBacklight();
   _i2c.digitalWrite(8, ~(status >> 2) & 0x1);
   _i2c.digitalWrite(7, ~(status >> 1) & 0x1);
   _i2c.digitalWrite(6, ~status & 0x1);
 }
+
+/* ADDED COMMANDS FOR ENABLING/DISABLING i2c BACKLIGHT CONTROL and PWM control of backlight.
+ * (in favor of PWM control)
+ * Note: The enable/disable code came from the Adafruit forums.
+ * Note 2: For simplicity, I will be changing the board layout to allow a new board to be used that 
+ *         will have solder jumpers to select the arduino pins. This will require the use of three 
+ *         of the digital/pwm pins and thus the board will no longer be pure i2c when pwm is required.
+ * Note 3: If you are using an Adafruit LCD, I recommend attaching a 3-pin right-angle female header to pins
+ *         16-18 of the LCD and running 3 wires to a matching 3-pin right-angle female header on a proto board
+ *         and linking that header to your desired PWM pins. Personally, I am using pins 9-11 on an Arduino
+ *         UNO compatible board for simplicity. In testing, I haven't had an issue directly linking the lcd
+ *         pins to the board, but resistors should be placed for safety, just use the 2x220 and 1x330 like
+ *         the Shield Kit uses.
+ */
+ 
+void Adafruit_RGBLCDShield::setUpBacklightPWMPins(int red, int blue, int green)
+{
+  arduinoRedPWM = red;
+  arduinoGreenPWM = green;
+  arduinoBluePWM = blue;
+}
+
+void Adafruit_RGBLCDShield::setBacklight(uint8_t red, uint8_t green, uint8_t blue)
+{
+  setBacklight(red, green, blue, false);
+}
+
+void Adafruit_RGBLCDShield::setBacklight(uint8_t red, uint8_t green, uint8_t blue, boolean invert)
+{
+  if (invert)
+  {
+    red = 255 - red;
+	green = 255 - green;
+	blue = 255 - blue;
+  }
+  
+  disableBacklight();
+  analogWrite(arduinoRedPWM, red);
+  analogWrite(arduinoGreenPWM, green);
+  analogWrite(arduinoBluePWM, blue);
+}
+
+void Adafruit_RGBLCDShield::enableBacklight()
+{
+  pinMode(arduinoRedPWM, INPUT)
+  pinMode(arduinoGreenPWM, INPUT)
+  pinMode(arduinoBluePWM, INPUT)
+  _i2c.pinMode(8, OUTPUT);
+  _i2c.pinMode(6, OUTPUT);
+  _i2c.pinMode(7, OUTPUT);
+}
+
+void Adafruit_RGBLCDShield::disableBacklight()
+{
+  _i2c.pinMode(8, INPUT);
+  _i2c.pinMode(6, INPUT);
+  _i2c.pinMode(7, INPUT);
+  pinMode(arduinoRedPWM, OUTPUT)
+  pinMode(arduinoGreenPWM, OUTPUT)
+  pinMode(arduinoBluePWM, OUTPUT)
+}
+
+/* END ADDED CODE */
 
 // little wrapper for i/o directions
 void  Adafruit_RGBLCDShield::_pinMode(uint8_t p, uint8_t d) {

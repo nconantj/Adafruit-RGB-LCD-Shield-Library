@@ -93,6 +93,11 @@ public:
   
   // only if using backpack
   void setBacklight(uint8_t status); 
+  void enableBacklight();
+  void disableBacklight();
+  void setUpBacklightPWMPins(int red, int blue, int green);
+  void setBacklight(uint8_t red, uint8_t green, uint8_t blue);
+  void setBacklight(uint8_t red, uint8_t green, uint8_t blue, boolean invert);
 
   void createChar(uint8_t, uint8_t[]);
   void setCursor(uint8_t, uint8_t); 
@@ -120,6 +125,10 @@ private:
   uint8_t _displayfunction;
   uint8_t _displaycontrol;
   uint8_t _displaymode;
+  
+  int arduinoRedPWM;
+  int arduinoGreenPWM;
+  int arduinoBluePWM;
 
   uint8_t _initialized;
 
